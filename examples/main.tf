@@ -1,16 +1,19 @@
-# AWS ECS Terraform module
+data "aws_caller_identity" "current" {}
 
-Terraform module which creates ECS (Elastic Container Service) resources on AWS.
+data "aws_route53_zone" "zone" {
+  name         = var.zone
+}
 
-## Available Features
+data "aws_acm_certificate" "wildcard_acm" {
+  domain   = "*.${var.zone}"
+  statuses = ["ISSUED"]
+}
 
-- ECS cluster w/ Fargate
-- ECS Service w/ task definition, task set, and container definition support
-- Service Discovery with Cloudmap
+locals {
+  env_suffix_dash = var.env == "prod" ? "" : "-${var.env}"
+  env_prefix_dash = var.env == "prod" ? "" : "${var.env}-"
+}
 
-## Usage
-
-```
 module "service" {
   source                          = "../modules"
   env                             = var.env
@@ -43,4 +46,4 @@ module "service" {
     }
   ]
 }
-```
+
