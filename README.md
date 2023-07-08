@@ -12,7 +12,7 @@ Terraform module which creates ECS (Elastic Container Service) resources on AWS.
 
 ```
 module "service" {
-  source                          = "../modules"
+  source                          = "github.com/mhrzn-terraform/terraform-aws-ecs/modules?ref=main"
   env                             = var.env
   vpc_id                          = var.vpc_id
   vpc_cidr                        = var.vpc_cidr
