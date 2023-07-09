@@ -81,9 +81,9 @@ jobs:
           git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
           git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
           
-          git tag "${{ github.github.run_number }}"
+          git tag "${{ github.run_number }}"
           git tag -f "${{ needs.major-version.outputs.version }}" 
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.github.run_number }}"
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.run_number }}"
           git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ needs.major-version.outputs.version }}"
 
   release:
@@ -94,7 +94,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.github.run_number }}
+          ref: ${{ github.run_number }}
           fetch-depth: 0
 
       - name: Generate Release Notes
@@ -104,6 +104,6 @@ jobs:
 
       - name: GH Release
         run: |
-          gh release create "${{ github.github.run_number }}" --notes-file /tmp/release-notes.txt --title "${{ github.github.run_number }}"
+          gh release create "${{ github.run_number }}" --notes-file /tmp/release-notes.txt --title "${{ github.run_number }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
