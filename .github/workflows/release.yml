@@ -41,8 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.run_number }}
           fetch-depth: 0
+          ref: ${{ github.ref }}
 
       - name: GH Release
         run: |
