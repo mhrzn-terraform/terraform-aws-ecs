@@ -82,9 +82,9 @@ jobs:
           git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
           
           git tag "${{ github.run_number }}"
-          git tag -f "${{ needs.major-version.outputs.version }}" 
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.run_number }}"
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ needs.major-version.outputs.version }}"
+          git tag -f "${{ github.run_number }}" 
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.run_number }}"
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ github.run_number }}"
 
   release:
     needs: [ release-tag ]
