@@ -97,13 +97,8 @@ jobs:
           ref: ${{ github.run_number }}
           fetch-depth: 0
 
-      - name: Generate Release Notes
-        run: |
-          cd .changes
-          sed -e "1{/# /d;}" -e "2{/^$/d;}" ${{ needs.changelog-version.outputs.version }}.md > /tmp/release-notes.txt
-
       - name: GH Release
         run: |
-          gh release create "${{ github.run_number }}" --notes-file /tmp/release-notes.txt --title "${{ github.run_number }}"
+          gh release create "${{ github.run_number }}" --title "${{ github.run_number }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
