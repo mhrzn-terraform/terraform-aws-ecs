@@ -65,7 +65,6 @@ jobs:
         working-directory: ${{ matrix.dir }}
 
   release-tag:
-    needs: [ changelog, major-version ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -86,7 +85,7 @@ jobs:
           git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ needs.major-version.outputs.version }}"
 
   release:
-    needs: [ changelog-version, changelog, release-tag ]
+    needs: [ release-tag ]
     runs-on: ubuntu-latest
     permissions:
       contents: write # Needed to create GitHub release
