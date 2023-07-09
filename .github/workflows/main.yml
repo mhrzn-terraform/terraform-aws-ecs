@@ -64,12 +64,45 @@ jobs:
         run: terraform plan
         working-directory: ${{ matrix.dir }}
 
-#  release:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: write
-#    steps:
-#    - uses: ncipollo/release-action@v1
-#      with:
-#        artifacts: "release.tar.gz,foo/*.txt"
-#        bodyFile: "body.md"
+  release-tag:
+    needs: [ changelog, major-version ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+          persist-credentials: false
+
+      - name: Git push release tag
+        run: |
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+          
+          git tag "${{ github.github.run_number }}"
+          git tag -f "${{ needs.major-version.outputs.version }}" 
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.github.run_number }}"
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ needs.major-version.outputs.version }}"
+
+  release:
+    needs: [ changelog-version, changelog, release-tag ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create GitHub release
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.github.run_number }}
+          fetch-depth: 0
+
+      - name: Generate Release Notes
+        run: |
+          cd .changes
+          sed -e "1{/# /d;}" -e "2{/^$/d;}" ${{ needs.changelog-version.outputs.version }}.md > /tmp/release-notes.txt
+
+      - name: GH Release
+        run: |
+          gh release create "${{ github.github.run_number }}" --notes-file /tmp/release-notes.txt --title "${{ github.github.run_number }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
