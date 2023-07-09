@@ -46,6 +46,6 @@ jobs:
 
       - name: GH Release
         run: |
-          gh release create "${{ github.run_number }}" --title "${{ github.run_number }}"
+          gh release create "${{ inputs.MAJOR_VERSION }}.${{ github.run_number }}" --title "${{ inputs.MAJOR_VERSION }}.${{ github.run_number }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
