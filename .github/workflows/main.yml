@@ -63,3 +63,13 @@ jobs:
       - name: Terraform Plan (Mock)
         run: terraform plan
         working-directory: ${{ matrix.dir }}
+
+#  release:
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write
+#    steps:
+#    - uses: ncipollo/release-action@v1
+#      with:
+#        artifacts: "release.tar.gz,foo/*.txt"
+#        bodyFile: "body.md"

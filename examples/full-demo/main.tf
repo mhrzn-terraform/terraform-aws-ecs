@@ -15,7 +15,7 @@ locals {
 }
 
 module "service" {
-  source                          = "../modules"
+  source                          = "github.com/mhrzn-terraform/terraform-aws-ecs/modules"
   env                             = var.env
   vpc_id                          = var.vpc_id
   vpc_cidr                        = var.vpc_cidr
