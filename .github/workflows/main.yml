@@ -14,6 +14,7 @@ env:
   AWS_SECRET_ACCESS_KEY: localstack
   CI_COMMIT_AUTHOR: mhrznamn068
   CI_COMMIT_EMAIL: mhrznamn068@gmail.com
+  MAJOR_VERSION: 1.0
 
 jobs:
   check-format:
@@ -81,10 +82,10 @@ jobs:
           git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
           git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
           
-          git tag "${{ github.run_number }}"
-          git tag -f "${{ github.run_number }}" 
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.run_number }}"
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ github.run_number }}"
+          git tag "${{ env.MAJOR_VERSION }}.${{ github.run_number }}"
+          git tag -f "${{ env.MAJOR_VERSION }}.${{ github.run_number }}" 
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ env.MAJOR_VERSION }}.${{ github.run_number }}"
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ env.MAJOR_VERSION }}.${{ github.run_number }}"
 
   release:
     needs: [ release-tag ]
