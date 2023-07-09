@@ -83,8 +83,8 @@ jobs:
           
           git tag "${{ github.run_number }}"
           git tag -f "${{ github.run_number }}" 
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.run_number }}"
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ github.run_number }}"
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.run_number }}"
+          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" -f "${{ github.run_number }}"
 
   release:
     needs: [ release-tag ]
