@@ -1,7 +1,7 @@
 data "aws_caller_identity" "current" {}
 
 data "aws_route53_zone" "zone" {
-  name         = var.zone
+  name = var.zone
 }
 
 data "aws_acm_certificate" "wildcard_acm" {
@@ -39,7 +39,7 @@ module "service" {
   log_retention                   = var.log_retention
   service_connect                 = true
   service_discovery_namespace_arn = aws_service_discovery_http_namespace.service_discovery.arn
-  environment_variables           = [
+  environment_variables = [
     {
       name  = "ENVIRONMENT"
       value = var.deploy_env

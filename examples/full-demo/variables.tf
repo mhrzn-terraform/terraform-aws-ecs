@@ -10,32 +10,32 @@ variable "vpc_cidr" {
 
 variable "region" {
   description = "AWS Region to deploy ECS cluster"
-  type = string
+  type        = string
 }
 
 variable "private_subnets" {
   description = "A list of Private Subnets"
-  type = list(string)
+  type        = list(string)
 }
 
 variable "public_subnets" {
   description = "A list of Public Subnets"
-  type = list(string)
+  type        = list(string)
 }
 
 variable "project_name" {
   description = "Project Name to be used in resource name as suffix and prefix"
-  type = string
+  type        = string
 }
 
 variable "service_name" {
   description = "ECS service name"
-  type = string
+  type        = string
 }
 
 variable "env" {
   description = "Environment stage to deploy resource"
-  type = string
+  type        = string
 }
 
 variable "deploy_env" {
@@ -44,30 +44,30 @@ variable "deploy_env" {
 
 variable "hostname" {
   description = "Root DNS name for ALB"
-  type = string
+  type        = string
 }
 
 variable "zone" {
   description = "Route53 DNS zone to create records"
-  type = string
+  type        = string
 }
 
 variable "certificate_arn" {
   description = "ACM certificate ARN for ALB"
-  type = string
+  type        = string
 }
 
 variable "containerInsights" {
   description = "Enables container insights if true"
-  type = bool
+  type        = bool
 }
 
 variable "service_image_tag" {
   description = "Image tag of app service"
-  type = string
+  type        = string
 }
 
 variable "log_retention" {
   description = "Log retentation days for service logs in cloudwatch"
-  type = number
+  type        = number
 }

@@ -40,8 +40,7 @@ resource "aws_security_group" "lb_access_sg" {
 }
 
 resource "aws_security_group_rule" "ingress_through_http" {
-  count       = var.lb_enabled ? 1 : 0
-  #count             = 1
+  count             = var.lb_enabled ? 1 : 0
   security_group_id = aws_security_group.lb_access_sg[count.index].id
   type              = "ingress"
   from_port         = 80
@@ -52,8 +51,7 @@ resource "aws_security_group_rule" "ingress_through_http" {
 }
 
 resource "aws_security_group_rule" "ingress_through_https" {
-  count       = var.lb_enabled ? 1 : 0
-  #count             = 1
+  count             = var.lb_enabled ? 1 : 0
   security_group_id = aws_security_group.lb_access_sg[count.index].id
   type              = "ingress"
   from_port         = 443
@@ -67,7 +65,7 @@ resource "aws_security_group_rule" "ingress_through_https" {
 # AWS LOAD BALANCER - Target Groups
 #------------------------------------------------------------------------------
 resource "aws_lb_target_group" "lb_http_tgs" {
-  count       = var.lb_enabled ? 1 : 0
+  count                         = var.lb_enabled ? 1 : 0
   name                          = "${var.project_name}-${var.component}-tg-${var.env}"
   port                          = var.port
   protocol                      = "HTTP"
@@ -105,7 +103,7 @@ resource "aws_lb_target_group" "lb_http_tgs" {
 # AWS LOAD BALANCER - Listeners
 #------------------------------------------------------------------------------
 resource "aws_lb_listener" "lb_http_listeners" {
-  count       = var.lb_enabled ? 1 : 0
+  count             = var.lb_enabled ? 1 : 0
   load_balancer_arn = aws_lb.lb[count.index].arn
   port              = 80
   protocol          = "HTTP"
@@ -132,7 +130,7 @@ resource "aws_lb_listener" "lb_http_listeners" {
 }
 
 resource "aws_lb_listener" "lb_https_listeners" {
-  count       = var.lb_enabled ? 1 : 0
+  count             = var.lb_enabled ? 1 : 0
   load_balancer_arn = aws_lb.lb[count.index].arn
   port              = 443
   protocol          = "HTTPS"
@@ -155,7 +153,7 @@ resource "aws_lb_listener" "lb_https_listeners" {
 //}
 
 resource "aws_cloudwatch_log_group" "cloudwatch_lg" {
-  name = "${var.project_name}-${var.component}-${var.env}"
+  name              = "${var.project_name}-${var.component}-${var.env}"
   retention_in_days = var.log_retention
 }
 
@@ -163,9 +161,8 @@ module "definition" {
   source          = "./modules/terraform-aws-ecs-container-definition/"
   container_image = "${var.component_ecr_url}:${var.component_image_tag}"
   container_name  = "${var.project_name}-${var.component}-ct"
-  container_cpu   = "${var.container_cpu}"
+  container_cpu   = var.container_cpu
   command         = [var.command]
-  
   port_mappings = [{
     name          = "${var.component}-${var.port}-http"
     containerPort = var.port
@@ -183,22 +180,21 @@ module "definition" {
     }
     secretOptions = []
   }
-  
   environment = [
     for env in var.environment_variables : {
-        name  = env.name
-        value = env.value
-      }
+      name  = env.name
+      value = env.value
+    }
   ]
 }
 
 module "td" {
-  source          = "./modules/ecs_td"
-  name_prefix     = "${var.project_name}-${var.component}-td-${var.env}"
-  container_cpu   = var.container_cpu
+  source        = "./modules/ecs_td"
+  name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
+  container_cpu = var.container_cpu
 
   containers = [
-      module.definition.json_map_object
+    module.definition.json_map_object
   ]
 }
 
@@ -235,14 +231,14 @@ resource "aws_ecs_service" "service" {
   task_definition  = module.td.aws_ecs_task_definition_td_arn
 
   service_connect_configuration {
-    enabled = var.service_connect
+    enabled   = var.service_connect
     namespace = var.service_discovery_namespace_arn
     service {
       discovery_name = var.component
-      port_name = "${var.component}-${var.port}-http"
+      port_name      = "${var.component}-${var.port}-http"
       client_alias {
         dns_name = var.component
-        port = var.port
+        port     = var.port
       }
     }
   }
@@ -298,7 +294,7 @@ resource "aws_appautoscaling_policy" "ecs_memory_policy" {
 }
 
 resource "aws_appautoscaling_policy" "ecs_alb_policy" {
-  count       = var.lb_enabled ? 1 : 0
+  count              = var.lb_enabled ? 1 : 0
   name               = "alb-request-auto-scaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target.resource_id
@@ -308,7 +304,7 @@ resource "aws_appautoscaling_policy" "ecs_alb_policy" {
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ALBRequestCountPerTarget"
-      resource_label = "${aws_lb.lb[count.index].arn_suffix}/${aws_lb_target_group.lb_http_tgs[count.index].arn_suffix}"
+      resource_label         = "${aws_lb.lb[count.index].arn_suffix}/${aws_lb_target_group.lb_http_tgs[count.index].arn_suffix}"
     }
 
     target_value       = 10000

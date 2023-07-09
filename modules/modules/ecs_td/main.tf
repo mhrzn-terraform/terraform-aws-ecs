@@ -2,9 +2,9 @@
 # AWS ECS Task Execution Role
 #------------------------------------------------------------------------------
 resource "aws_iam_policy" "ecs_task_execution_ssm_policy" {
-    name = "${var.name_prefix}-ecs-task-execution-policy"
-    description = "An IAM policy that gives access to deploy user"
-    policy = <<POLICY
+  name        = "${var.name_prefix}-ecs-task-execution-policy"
+  description = "An IAM policy that gives access to deploy user"
+  policy      = <<POLICY
 {
    "Version": "2012-10-17",
    "Statement": [
