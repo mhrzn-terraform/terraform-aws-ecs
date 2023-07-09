@@ -12,6 +12,8 @@ env:
   DEFAULT_REGION: ap-south-1
   AWS_ACCESS_KEY_ID: localstack
   AWS_SECRET_ACCESS_KEY: localstack
+  CI_COMMIT_AUTHOR: mhrznamn068
+  CI_COMMIT_EMAIL: mhrznamn068@gmail.com
 
 jobs:
   check-format:
