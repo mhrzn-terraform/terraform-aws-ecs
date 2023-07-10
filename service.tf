@@ -158,11 +158,12 @@ resource "aws_cloudwatch_log_group" "cloudwatch_lg" {
 }
 
 module "definition" {
-  source          = "./modules/terraform-aws-ecs-container-definition/"
-  container_image = "${var.component_ecr_url}:${var.component_image_tag}"
-  container_name  = "${var.project_name}-${var.component}-ct"
-  container_cpu   = var.container_cpu
-  command         = [var.command]
+  source           = "./modules/terraform-aws-ecs-container-definition/"
+  container_image  = "${var.component_ecr_url}:${var.component_image_tag}"
+  container_name   = "${var.project_name}-${var.component}-ct"
+  container_cpu    = var.container_cpu
+  container_memory = var.container_memory
+  command          = [var.command]
   port_mappings = [{
     name          = "${var.component}-${var.port}-http"
     containerPort = var.port

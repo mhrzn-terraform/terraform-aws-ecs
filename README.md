@@ -30,6 +30,7 @@ module "service" {
   component_ecr_url               = <image_url/name>
   component_image_tag             = <image_tag>
   container_cpu                   = 2048
+  container_memory                = 4096
   certificate_arn                 = <acm_certificate_arn>
   http_redirect                   = true
   internal_lb_enabled             = false

@@ -79,6 +79,11 @@ variable "container_cpu" {
   type        = number
 }
 
+variable "container_memory" {
+  description = "Memory allocation for component container"
+  type        = number
+}
+
 variable "environment_variables" {
   type = list(object({
     name  = string

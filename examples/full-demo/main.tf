@@ -33,6 +33,7 @@ module "service" {
   component_ecr_url               = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.project_name}-nginx-${var.env}"
   component_image_tag             = var.service_image_tag
   container_cpu                   = 2048
+  container_memory                = 4096
   certificate_arn                 = var.certificate_arn
   http_redirect                   = true
   internal_lb_enabled             = false
