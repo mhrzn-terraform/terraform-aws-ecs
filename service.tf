@@ -269,15 +269,18 @@ resource "aws_ecs_service" "service" {
   propagate_tags   = "SERVICE"
   task_definition  = module.td.aws_ecs_task_definition_td_arn
 
-  service_connect_configuration {
-    enabled   = var.service_connect
-    namespace = var.service_discovery_namespace_arn
-    service {
-      discovery_name = var.component
-      port_name      = "${var.component}-${var.port}-http"
-      client_alias {
-        dns_name = var.component
-        port     = var.port
+  dynamic "service_connect_configuration" {
+    for_each = var.service_connect ? [1] : []
+    content {
+      enabled   = var.service_connect
+      namespace = var.service_discovery_namespace_arn
+      service {
+        discovery_name = var.component
+        port_name      = "${var.component}-${var.port}-http"
+        client_alias {
+          dns_name = var.component
+          port     = var.port
+        }
       }
     }
   }
