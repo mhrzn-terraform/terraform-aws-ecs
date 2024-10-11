@@ -157,6 +157,29 @@ resource "aws_cloudwatch_log_group" "cloudwatch_lg" {
   retention_in_days = var.log_retention
 }
 
+module "fluentbit_definition" {
+  count           = var.grafana_fluent_bit_plugin_loki ? 1 : 0
+  source          = "cloudposse/ecs-container-definition/aws"
+  version         = "0.58.1"
+  container_image = var.grafana_fluent_bit_plugin_loki_image
+  container_name  = "${var.project_name}-${var.component}-log-router-ct"
+  firelens_configuration = {
+      type = "fluentbit",
+      options = {
+          enable-ecs-log-metadata = "true"
+      }
+  }
+  log_configuration = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group         = "${var.project_name}-${var.component}-${var.env}"
+      awslogs-region        = var.aws_region
+      awslogs-stream-prefix = "firelens"
+    }
+    secretOptions = []
+  }
+}
+
 module "definition" {
   source           = "./modules/terraform-aws-ecs-container-definition/"
   container_image  = "${var.component_ecr_url}:${var.component_image_tag}"
@@ -172,7 +195,18 @@ module "definition" {
     appProtocol   = "http"
   }]
 
-  log_configuration = {
+  log_configuration = var.grafana_fluent_bit_plugin_loki ? {
+    logDriver = "awsfirelens"
+    options = {
+      Name       = "grafana-loki"
+      Url        = var.grafana_loki_url
+      Labels     = "{job=\"firelens-${var.project_name}-${var.component}\",environment=\"${var.env}\"}"
+      RemoveKeys = "container_id,ecs_task_arn"
+      LabelKeys  = "container_name,ecs_task_definition,source,ecs_cluster"
+      LineFormat = "key_value"
+    }
+    secretOptions = []
+  } : {
     logDriver = "awslogs"
     options = {
       awslogs-group         = "${var.project_name}-${var.component}-${var.env}"
@@ -181,6 +215,7 @@ module "definition" {
     }
     secretOptions = []
   }
+
   environment = [
     for env in var.environment_variables : {
       name  = env.name
@@ -194,7 +229,10 @@ module "td" {
   name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
   container_cpu = var.container_cpu
 
-  containers = [
+  containers = var.grafana_fluent_bit_plugin_loki ? [
+    module.definition.json_map_object
+  ] : [
+    module.fluentbit_definition.json_map_object,
     module.definition.json_map_object
   ]
 }

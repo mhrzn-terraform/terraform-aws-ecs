@@ -117,3 +117,19 @@ variable "service_discovery_namespace_arn" {
   description = "Service Discovery ARN"
   type        = string
 }
+
+variable "grafana_fluent_bit_plugin_loki" {
+  description = "Enable if Grafana Loki log router using fluentbit firelens is required"
+  type        = string
+}
+
+variable "grafana_fluent_bit_plugin_loki_image" {
+  description = "Image and tag of Grafana Fluentbit plugin Loki"
+  type        = string
+  default     = "grafana/fluent-bit-plugin-loki:2.9.1"
+}
+
+variable "grafana_loki_url" {
+  description = "Full URL of Grafana Loki"
+  type        = string
+}
