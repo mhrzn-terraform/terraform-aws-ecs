@@ -230,7 +230,8 @@ module "td" {
   container_cpu = var.container_cpu
 
   containers = var.grafana_fluent_bit_plugin_loki ? [
-    module.definition.json_map_object
+    module.definition.json_map_object,
+    null
   ] : [
     module.fluentbit_definition.json_map_object,
     module.definition.json_map_object
