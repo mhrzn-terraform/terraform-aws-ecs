@@ -229,13 +229,20 @@ module "td" {
   name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
   container_cpu = var.container_cpu
 
-  containers = var.grafana_fluent_bit_plugin_loki ? [
-    module.definition.json_map_object,
-    null
-  ] : [
-    module.fluentbit_definition.json_map_object,
-    module.definition.json_map_object
-  ]
+  #containers = var.grafana_fluent_bit_plugin_loki ? [
+  #  module.definition.json_map_object,
+  #  null
+  #] : [
+  #  module.fluentbit_definition.json_map_object,
+  #  module.definition.json_map_object
+  #]
+  containers = flatten([
+    var.grafana_fluent_bit_plugin_loki ? [
+      module.definition.json_map_object
+    ] : [
+      module.fluentbit_definition.json_map_object],
+    [module.definition.json_map_object]
+  ])
 }
 
 #------------------------------------------------------------------------------
