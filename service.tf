@@ -224,25 +224,27 @@ module "definition" {
   ]
 }
 
-module "td" {
+module "td_fluent_bit" {
+  count         = var.grafana_fluent_bit_plugin_loki ? 1 : 0
   source        = "./modules/ecs_td"
   name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
   container_cpu = var.container_cpu
 
-  #containers = var.grafana_fluent_bit_plugin_loki ? [
-  #  module.definition.json_map_object,
-  #  null
-  #] : [
-  #  module.fluentbit_definition.json_map_object,
-  #  module.definition.json_map_object
-  #]
-  containers = flatten([
-    var.grafana_fluent_bit_plugin_loki ? [
-      module.definition.json_map_object
-    ] : [
-      module.fluentbit_definition.json_map_object],
-    [module.definition.json_map_object]
-  ])
+  containers = [
+    module.fluentbit_definition[0].json_map_object,
+    module.definition.json_map_object
+  ]
+}
+
+module "td_default" {
+  count         = var.grafana_fluent_bit_plugin_loki ? 0 : 1
+  source        = "./modules/ecs_td"
+  name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
+  container_cpu = var.container_cpu
+
+  containers = [
+    module.definition.json_map_object
+  ]
 }
 
 #------------------------------------------------------------------------------
@@ -275,7 +277,8 @@ resource "aws_ecs_service" "service" {
   }
   platform_version = "1.4.0"
   propagate_tags   = "SERVICE"
-  task_definition  = module.td.aws_ecs_task_definition_td_arn
+  #task_definition  = module.td.aws_ecs_task_definition_td_arn
+  task_definition = var.grafana_fluent_bit_plugin_loki ? module.td_fluent_bit[0].aws_ecs_task_definition_td_arn : module.td_default[0].aws_ecs_task_definition_td_arn
 
   dynamic "service_connect_configuration" {
     for_each = var.service_connect ? [1] : []
