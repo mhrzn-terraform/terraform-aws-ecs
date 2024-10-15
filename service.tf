@@ -164,10 +164,10 @@ module "fluentbit_definition" {
   container_image = var.grafana_fluent_bit_plugin_loki_image
   container_name  = "${var.project_name}-${var.component}-log-router-ct"
   firelens_configuration = {
-      type = "fluentbit",
-      options = {
-          enable-ecs-log-metadata = "true"
-      }
+    type = "fluentbit",
+    options = {
+      enable-ecs-log-metadata = "true"
+    }
   }
   log_configuration = {
     logDriver = "awslogs"
@@ -206,7 +206,7 @@ module "definition" {
       LineFormat = "key_value"
     }
     secretOptions = []
-  } : {
+    } : {
     logDriver = "awslogs"
     options = {
       awslogs-group         = "${var.project_name}-${var.component}-${var.env}"
