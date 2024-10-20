@@ -41,7 +41,18 @@ module "service" {
   grafana_fluent_bit_plugin_loki       = true
   grafana_fluent_bit_plugin_loki_image = "grafana/fluent-bit-plugin-loki:2.9.1"
   grafana_loki_url                     = "https://<grafana_loki_url>"
-  environment_variables           = [
+  desired_count                        = 1
+  autoscaling_max_capacity             = var.env == "prod" ? 10 : var.env == "staging" ? 1 : 1
+  autoscaling_min_capacity             = var.env == "prod" ? 2 : var.env == "staging" ? 1 : 1
+  schedule_scaling                     = true
+  schedule_max_capacity                = "cron(0 15 * * ? *)"
+  schedule_min_capacity                = "cron(0 6 * * ? *)"
+  external_lb                          = true
+  external_lb_arn_suffix               = "<load balancer arn suffix>"
+  external_lb_target_group             = "<load balancer target group>"
+  external_lb_target_group_arn_suffix  = "<load balancer target group arn suffix>"
+  external_lb_security_group           = "<security group id of external load balancer>"
+  environment_variables                = [
     {
       name  = "ENVIRONMENT"
       value = var.deploy_env

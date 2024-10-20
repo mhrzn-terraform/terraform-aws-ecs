@@ -154,3 +154,77 @@ variable "grafana_loki_url" {
   type        = string
   default     = null
 }
+
+variable "desired_count" {
+  description = "ECS service task count"
+  type        = number
+  default     = 1
+}
+
+variable "autoscaling_max_capacity" {
+  description = "App Autoscaling maximum capacity"
+  type        = number
+  default     = 2
+}
+
+variable "autoscaling_min_capacity" {
+  description = "App Autoscaling minimum capacity"
+  type        = number
+  default     = 1
+}
+
+variable "schedule_scaling" {
+  description = "Enable if schedule scaling is requried"
+  type        = string
+  default     = false
+}
+
+variable "scale_in_schedule" {
+  description = "Crontab Schedule to scale in"
+  type        = string
+  default     = "cron(0 15 * * ? *)"
+}
+
+variable "scale_out_schedule" {
+  description = "Crontab Schedule to scale out"
+  type        = string
+  default     = "cron(0 6 * * ? *)"
+}
+
+variable "schedule_min_capacity" {
+  description = "Autoscaling Schedule Minimum Capacity"
+  type        = number
+  default     = 1
+}
+
+variable "schedule_max_capacity" {
+  description = "Autoscaling Maximum Capacity"
+  type        = number
+  default     = 1
+}
+
+variable "external_lb" {
+  description = "Enable for external ALB"
+  type        = string
+  default     = false
+}
+
+variable "external_lb_arn_suffix" {
+  description = "External Load Balancer ARN suffix"
+  type        = string
+}
+
+variable "external_lb_target_group" {
+  description = "External Load Balancer Target Group"
+  type        = string
+}
+
+variable "external_lb_target_group_arn_suffix" {
+  description = "External Load Balancer Target Group ARN suffix"
+  type        = string
+}
+
+variable "external_lb_security_group" {
+  description = "Security Group ID of External Load Balancer"
+  type        = string
+}
