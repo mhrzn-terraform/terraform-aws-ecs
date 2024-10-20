@@ -2,7 +2,7 @@
 # APPLICATION LOAD BALANCER
 #------------------------------------------------------------------------------
 resource "aws_lb" "lb" {
-  count                            = var.lb_enabled ? 1 : 0
+  count                            = !var.lb_enabled || var.external_lb ? 0 : 1
   name                             = var.internal_lb_enabled ? "${var.project_name}-${var.component}-lb-${var.env}-in" : "${var.project_name}-${var.component}-lb-${var.env}"
   internal                         = var.internal_lb_enabled
   load_balancer_type               = "application"
@@ -24,7 +24,7 @@ resource "aws_lb" "lb" {
 # ACCESS CONTROL TO APPLICATION LOAD BALANCER
 #------------------------------------------------------------------------------
 resource "aws_security_group" "lb_access_sg" {
-  count       = var.lb_enabled ? 1 : 0
+  count       = !var.lb_enabled || var.external_lb ? 0 : 1
   name        = "${var.project_name}-${var.component}-lb-sg-${var.env}"
   description = "Controls access to the Load Balancer"
   vpc_id      = var.vpc_id
@@ -40,7 +40,7 @@ resource "aws_security_group" "lb_access_sg" {
 }
 
 resource "aws_security_group_rule" "ingress_through_http" {
-  count             = var.lb_enabled ? 1 : 0
+  count             = !var.lb_enabled || var.external_lb ? 0 : 1
   security_group_id = aws_security_group.lb_access_sg[count.index].id
   type              = "ingress"
   from_port         = 80
@@ -51,7 +51,7 @@ resource "aws_security_group_rule" "ingress_through_http" {
 }
 
 resource "aws_security_group_rule" "ingress_through_https" {
-  count             = var.lb_enabled ? 1 : 0
+  count             = !var.lb_enabled || var.external_lb ? 0 : 1
   security_group_id = aws_security_group.lb_access_sg[count.index].id
   type              = "ingress"
   from_port         = 443
@@ -65,7 +65,7 @@ resource "aws_security_group_rule" "ingress_through_https" {
 # AWS LOAD BALANCER - Target Groups
 #------------------------------------------------------------------------------
 resource "aws_lb_target_group" "lb_http_tgs" {
-  count                         = var.lb_enabled ? 1 : 0
+  count                         = !var.lb_enabled || var.external_lb ? 0 : 1
   name                          = "${var.project_name}-${var.component}-tg-${var.env}"
   port                          = var.port
   protocol                      = "HTTP"
@@ -103,7 +103,7 @@ resource "aws_lb_target_group" "lb_http_tgs" {
 # AWS LOAD BALANCER - Listeners
 #------------------------------------------------------------------------------
 resource "aws_lb_listener" "lb_http_listeners" {
-  count             = var.lb_enabled ? 1 : 0
+  count             = !var.lb_enabled || var.external_lb ? 0 : 1
   load_balancer_arn = aws_lb.lb[count.index].arn
   port              = 80
   protocol          = "HTTP"
@@ -130,7 +130,7 @@ resource "aws_lb_listener" "lb_http_listeners" {
 }
 
 resource "aws_lb_listener" "lb_https_listeners" {
-  count             = var.lb_enabled ? 1 : 0
+  count             = !var.lb_enabled || var.external_lb ? 0 : 1
   load_balancer_arn = aws_lb.lb[count.index].arn
   port              = 443
   protocol          = "HTTPS"
@@ -256,20 +256,31 @@ resource "aws_ecs_service" "service" {
   cluster                            = var.cluster_arn
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 100
-  desired_count                      = 1
+  desired_count                      = var.desired_count
   enable_ecs_managed_tags            = false
   health_check_grace_period_seconds  = 0
   launch_type                        = "FARGATE"
   force_new_deployment               = true
   enable_execute_command             = true
+
   dynamic "load_balancer" {
-    for_each = var.lb_enabled ? { for i in range(1) : i => aws_lb_target_group.lb_http_tgs[i] } : {}
+    for_each = var.external_lb ? [1] : []
+    content {
+      target_group_arn = var.external_lb_target_group
+      container_name   = "${var.project_name}-${var.component}-ct"
+      container_port   = var.port
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = !var.external_lb && var.lb_enabled ? { for i in range(1) : i => aws_lb_target_group.lb_http_tgs[i] } : {}
     content {
       target_group_arn = load_balancer.value.arn
       container_name   = "${var.project_name}-${var.component}-ct"
       container_port   = load_balancer.value.port
     }
   }
+
   network_configuration {
     security_groups  = [aws_security_group.sg.id]
     subnets          = var.vpc_pub_subnet_ids
@@ -303,8 +314,8 @@ resource "aws_ecs_service" "service" {
 }
 
 resource "aws_appautoscaling_target" "ecs_target" {
-  max_capacity       = 2
-  min_capacity       = 1
+  max_capacity       = var.autoscaling_max_capacity
+  min_capacity       = var.autoscaling_min_capacity
   resource_id        = "service/${var.cluster_arn}/${aws_ecs_service.service.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
@@ -347,7 +358,7 @@ resource "aws_appautoscaling_policy" "ecs_memory_policy" {
 }
 
 resource "aws_appautoscaling_policy" "ecs_alb_policy" {
-  count              = var.lb_enabled ? 1 : 0
+  count              = var.lb_enabled || var.external_lb ? 1 : 0
   name               = "alb-request-auto-scaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target.resource_id
@@ -357,12 +368,42 @@ resource "aws_appautoscaling_policy" "ecs_alb_policy" {
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ALBRequestCountPerTarget"
-      resource_label         = "${aws_lb.lb[count.index].arn_suffix}/${aws_lb_target_group.lb_http_tgs[count.index].arn_suffix}"
+      resource_label         = var.external_lb ? "${var.external_lb_arn_suffix}/${var.external_lb_target_group_arn_suffix}" : "${aws_lb.lb[count.index].arn_suffix}/${aws_lb_target_group.lb_http_tgs[count.index].arn_suffix}"
     }
 
     target_value       = 10000
     scale_in_cooldown  = 300
     scale_out_cooldown = 300
+  }
+}
+
+resource "aws_appautoscaling_scheduled_action" "ecs_schedule_scale_in" {
+  count              = var.schedule_scaling ? 1 : 0
+  name               = "schedule-auto-scaling-in"
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  schedule           = var.scale_in_schedule
+  timezone           = "GMT"
+
+  scalable_target_action {
+    min_capacity = var.schedule_min_capacity
+    max_capacity = var.schedule_min_capacity
+  }
+}
+
+resource "aws_appautoscaling_scheduled_action" "ecs_schedule_scale_out" {
+  count              = var.schedule_scaling ? 1 : 0
+  name               = "schedule-auto-scaling-out"
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  schedule           = var.scale_out_schedule
+  timezone           = "GMT"
+
+  scalable_target_action {
+    min_capacity = var.schedule_max_capacity
+    max_capacity = var.schedule_max_capacity
   }
 }
 
@@ -387,7 +428,7 @@ resource "aws_security_group" "sg" {
     description = "Allows from ecs services"
   }
   dynamic "ingress" {
-    for_each = var.lb_enabled ? { for i in range(1) : i => aws_security_group.lb_access_sg[i] } : {}
+    for_each = !var.external_lb && var.lb_enabled ? { for i in range(1) : i => aws_security_group.lb_access_sg[i] } : {}
     content {
       from_port       = var.port
       to_port         = var.port
@@ -399,5 +440,16 @@ resource "aws_security_group" "sg" {
   tags = {
     Name = "${var.project_name}-${var.component}-ecs-task-sg-${var.env}"
   }
+}
+
+resource "aws_security_group_rule" "ingress_through_external_lb" {
+  count                    = var.external_lb && !var.lb_enabled ? 1 : 0
+  security_group_id        = aws_security_group.sg.id
+  type                     = "ingress"
+  from_port                = var.port
+  to_port                  = var.port
+  protocol                 = "TCP"
+  source_security_group_id = var.external_lb_security_group
+  description              = "Allows to ecs services from external lb"
 }
 
