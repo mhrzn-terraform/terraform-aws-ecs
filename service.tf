@@ -283,9 +283,10 @@ resource "aws_ecs_service" "service" {
 
   network_configuration {
     security_groups  = [aws_security_group.sg.id]
-    subnets          = var.vpc_pub_subnet_ids
-    assign_public_ip = true
+    subnets          = var.enable_public_ip ? var.vpc_pub_subnet_ids : var.vpc_pvt_subnet_ids
+    assign_public_ip = var.enable_public_ip ? true : false
   }
+
   platform_version = "1.4.0"
   propagate_tags   = "SERVICE"
   #task_definition  = module.td.aws_ecs_task_definition_td_arn
@@ -442,14 +443,14 @@ resource "aws_security_group" "sg" {
   }
 }
 
-resource "aws_security_group_rule" "ingress_through_external_lb" {
-  count                    = var.external_lb && !var.lb_enabled ? 1 : 0
-  security_group_id        = aws_security_group.sg.id
-  type                     = "ingress"
-  from_port                = var.port
-  to_port                  = var.port
-  protocol                 = "TCP"
-  source_security_group_id = var.external_lb_security_group
-  description              = "Allows to ecs services from external lb"
-}
+//resource "aws_security_group_rule" "ingress_through_external_lb" {
+//  count                    = var.external_lb && !var.lb_enabled ? 1 : 0
+//  security_group_id        = aws_security_group.sg.id
+//  type                     = "ingress"
+//  from_port                = var.port
+//  to_port                  = var.port
+//  protocol                 = "TCP"
+//  source_security_group_id = var.external_lb_security_group
+//  description              = "Allows to ecs services from external lb"
+//}
 

@@ -228,3 +228,9 @@ variable "external_lb_security_group" {
   description = "Security Group ID of External Load Balancer"
   type        = string
 }
+
+variable "enable_public_ip" {
+  description = "Flag to assign public IP ECS task"
+  type        = bool
+  default     = false
+}
