@@ -229,6 +229,7 @@ module "td_fluent_bit" {
   source        = "./modules/ecs_td"
   name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
   container_cpu = var.container_cpu
+  container_memory = var.container_memory
 
   containers = [
     module.fluentbit_definition[0].json_map_object,
@@ -241,6 +242,7 @@ module "td_default" {
   source        = "./modules/ecs_td"
   name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
   container_cpu = var.container_cpu
+  container_memory = var.container_memory
 
   containers = [
     module.definition.json_map_object
