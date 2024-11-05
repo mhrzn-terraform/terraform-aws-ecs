@@ -13,7 +13,7 @@ Terraform module which creates ECS (Elastic Container Service) resources on AWS.
 ```
 module "service" {
   source                               = "mhrzn-terraform/ecs/aws"
-  version                              = "1.0.8"
+  version                              = "1.0.11"
   env                                  = "dev"
   vpc_id                               = "vpc-08fa46523c7cd7e21"
   vpc_cidr                             = "172.31.0.0/16"
@@ -52,6 +52,7 @@ module "service" {
   external_lb_target_group             = "<load balancer target group>"
   external_lb_target_group_arn_suffix  = "<load balancer target group arn suffix>"
   external_lb_security_group           = "<security group id of external load balancer>"
+  enable_public_ip                     = true
   environment_variables                = [
     {
       name  = "ENVIRONMENT"
