@@ -36,6 +36,11 @@ variable "cluster_arn" {
   type        = string
 }
 
+variable "cluster_name" {
+  description = "ECS cluster name"
+  type        = string
+}
+
 variable "lb_enabled" {
   description = "Enables ALB for component"
   type        = bool

@@ -319,7 +319,7 @@ resource "aws_ecs_service" "service" {
 resource "aws_appautoscaling_target" "ecs_target" {
   max_capacity       = var.autoscaling_max_capacity
   min_capacity       = var.autoscaling_min_capacity
-  resource_id        = "service/${var.cluster_arn}/${aws_ecs_service.service.name}"
+  resource_id        = "service/${var.cluster_name}/${aws_ecs_service.service.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
