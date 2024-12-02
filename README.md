@@ -13,7 +13,7 @@ Terraform module which creates ECS (Elastic Container Service) resources on AWS.
 ```
 module "service" {
   source                               = "mhrzn-terraform/ecs/aws"
-  version                              = "1.0.11"
+  version                              = "1.0.14"
   env                                  = "dev"
   vpc_id                               = "vpc-08fa46523c7cd7e21"
   vpc_cidr                             = "172.31.0.0/16"
@@ -22,6 +22,7 @@ module "service" {
   vpc_pub_subnet_ids                   = ["subnet-09702b1b6db693bba","subnet-051a4e5879d10a66e"]
   project_name                         = "ECS-TEST"
   cluster_arn                          = <ecs_cluster_arn>
+  cluster_name                         = <ecs_cluster_name>
   lb_enabled                           = "true"
   component                            = "service"
   port                                 = 80
@@ -57,6 +58,18 @@ module "service" {
     {
       name  = "ENVIRONMENT"
       value = var.deploy_env
+    }
+  ]
+
+  secrets_manager_secret_arn           = <aws_secrets_manager_secrets_arn>
+  secrets                              = [
+    {
+      name      = "DB_NAME"
+      valueFrom = "<aws_secrets_manager_secrets_arn>:DB_NAME::"
+    },
+    {
+      name      = "DB_PASSWORD"
+      valueFrom = "<aws_secrets_manager_secrets_arn>:DB_PASSWORD::"
     }
   ]
 }

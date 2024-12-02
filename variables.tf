@@ -106,6 +106,19 @@ variable "environment_variables" {
   }))
 }
 
+variable "secrets" {
+  type = list(object({
+    name      = string
+    valueFrom = string
+  }))
+}
+
+variable "secrets_manager_secret_arn" {
+  description = "Secrets Manager Secret ARN"
+  type        = string
+  default     = null
+}
+
 variable "certificate_arn" {
   description = "SSL Certificate for ALB"
   type        = string

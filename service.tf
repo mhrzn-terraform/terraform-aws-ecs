@@ -222,31 +222,76 @@ module "definition" {
       value = env.value
     }
   ]
+
+  secrets = [
+    for secret in var.secrets : {
+      name      = secret.name
+      valueFrom = secret.valueFrom
+    }
+  ]
 }
 
 module "td_fluent_bit" {
-  count         = var.grafana_fluent_bit_plugin_loki ? 1 : 0
-  source        = "./modules/ecs_td"
-  name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
-  container_cpu = var.container_cpu
+  count            = var.grafana_fluent_bit_plugin_loki ? 1 : 0
+  source           = "./modules/ecs_td"
+  name_prefix      = "${var.project_name}-${var.component}-td-${var.env}"
+  container_cpu    = var.container_cpu
   container_memory = var.container_memory
 
   containers = [
     module.fluentbit_definition[0].json_map_object,
     module.definition.json_map_object
   ]
+
+  ecs_task_execution_role_custom_policies = var.secrets != null && length(var.secrets) > 0 ? [
+    jsonencode(
+      {
+        "Version" : "2012-10-17",
+        "Statement" : [
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "secretsmanager:GetSecretValue"
+            ],
+            "Resource" : [
+              "${var.secrets_manager_secret_arn}"
+            ]
+          }
+        ]
+      }
+    )
+  ] : []
 }
 
 module "td_default" {
-  count         = var.grafana_fluent_bit_plugin_loki ? 0 : 1
-  source        = "./modules/ecs_td"
-  name_prefix   = "${var.project_name}-${var.component}-td-${var.env}"
-  container_cpu = var.container_cpu
+  count            = var.grafana_fluent_bit_plugin_loki ? 0 : 1
+  source           = "./modules/ecs_td"
+  name_prefix      = "${var.project_name}-${var.component}-td-${var.env}"
+  container_cpu    = var.container_cpu
   container_memory = var.container_memory
 
   containers = [
     module.definition.json_map_object
   ]
+
+  ecs_task_execution_role_custom_policies = var.secrets != null && length(var.secrets) > 0 ? [
+    jsonencode(
+      {
+        "Version" : "2012-10-17",
+        "Statement" : [
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "secretsmanager:GetSecretValue"
+            ],
+            "Resource" : [
+              "${var.secrets_manager_secret_arn}"
+            ]
+          }
+        ]
+      }
+    )
+  ] : []
 }
 
 #------------------------------------------------------------------------------
